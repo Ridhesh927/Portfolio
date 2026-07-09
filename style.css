@@ -160,6 +160,7 @@ nav {
     text-align: center;
     background: linear-gradient(135deg, #fff, #94a3b8);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -190,6 +191,7 @@ nav {
 .gradient-text {
     background: linear-gradient(135deg, var(--accent-light), #38bdf8);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
