@@ -367,7 +367,6 @@ document.addEventListener("DOMContentLoaded", () => {
             jump();
         });
     }
-
     window.addEventListener("keydown", (e) => {
         if (e.code === "Space" && sharkModal && sharkModal.classList.contains("is-open")) {
             e.preventDefault();
@@ -384,3 +383,169 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+/* ==========================================================================
+   YOUTUBE FLOATING MUSIC PLAYER
+   ========================================================================== */
+const ytScriptTag = document.createElement('script');
+ytScriptTag.src = "https://www.youtube.com/iframe_api";
+const firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(ytScriptTag, firstScriptTag);
+
+let ytPlayer;
+let progressInterval;
+const playlistId = 'PLBx2CZQGyFQqwpaWkQPBefluSYsiVpetF';
+
+// Wait for API to be ready
+window.onYouTubeIframeAPIReady = function() {
+    ytPlayer = new YT.Player('youtube-player-container', {
+        height: '200',
+        width: '200',
+        playerVars: {
+            'playsinline': 1,
+            'listType': 'playlist',
+            'list': playlistId,
+            'autoplay': 0,
+            'controls': 0,
+            'disablekb': 1,
+            'fs': 0,
+            'rel': 0
+        },
+        events: {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange
+        }
+    });
+};
+
+const playBtn = document.getElementById('ctrl-play');
+const prevBtn = document.getElementById('ctrl-prev');
+const nextBtn = document.getElementById('ctrl-next');
+const shuffleBtn = document.getElementById('ctrl-shuffle');
+const loopBtn = document.getElementById('ctrl-loop');
+const progressBarWrapper = document.getElementById('progress-bar-wrapper');
+const progressBarFill = document.getElementById('progress-bar-fill');
+const progressBarThumb = document.getElementById('progress-bar-thumb');
+const timeCurrent = document.getElementById('time-current');
+const timeTotal = document.getElementById('time-total');
+const trackTitle = document.getElementById('track-title');
+const trackArtist = document.getElementById('track-artist');
+const closePlayerBtn = document.getElementById('player-close-btn');
+const floatingPlayer = document.getElementById('floating-music-player');
+
+const SVG_PLAY = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+const SVG_PAUSE = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+
+let isShuffle = false;
+let isLoop = false;
+
+function onPlayerReady(event) {
+    // Buttons events
+    playBtn.addEventListener('click', () => {
+        if (!ytPlayer || !ytPlayer.getPlayerState) return;
+        const state = ytPlayer.getPlayerState();
+        if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.BUFFERING) {
+            ytPlayer.pauseVideo();
+        } else {
+            ytPlayer.playVideo();
+        }
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (ytPlayer && ytPlayer.previousVideo) ytPlayer.previousVideo();
+    });
+    
+    nextBtn.addEventListener('click', () => {
+        if (ytPlayer && ytPlayer.nextVideo) ytPlayer.nextVideo();
+    });
+    
+    shuffleBtn.addEventListener('click', () => {
+        isShuffle = !isShuffle;
+        if (ytPlayer && ytPlayer.setShuffle) ytPlayer.setShuffle(isShuffle);
+        shuffleBtn.style.color = isShuffle ? 'var(--yellow)' : 'var(--black)';
+    });
+
+    loopBtn.addEventListener('click', () => {
+        isLoop = !isLoop;
+        if (ytPlayer && ytPlayer.setLoop) ytPlayer.setLoop(isLoop);
+        loopBtn.style.color = isLoop ? 'var(--yellow)' : 'var(--black)';
+    });
+    
+    closePlayerBtn.addEventListener('click', () => {
+        floatingPlayer.style.display = 'none';
+        if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+    });
+
+    // Progress bar interactions
+    progressBarWrapper.addEventListener('click', (e) => {
+        if (!ytPlayer || !ytPlayer.getDuration) return;
+        const rect = progressBarWrapper.getBoundingClientRect();
+        const pos = (e.clientX - rect.left) / rect.width;
+        ytPlayer.seekTo(pos * ytPlayer.getDuration(), true);
+    });
+}
+
+function onPlayerStateChange(event) {
+    if (event.data === YT.PlayerState.PLAYING) {
+        playBtn.innerHTML = SVG_PAUSE;
+        startProgressInterval();
+        updateTrackInfo();
+    } else {
+        playBtn.innerHTML = SVG_PLAY;
+        stopProgressInterval();
+    }
+
+    // When the video ends, YouTube should automatically go to the next in playlist.
+    // If it gets stuck in ENDED, force it to next video.
+    if (event.data === YT.PlayerState.ENDED) {
+        if (ytPlayer && ytPlayer.nextVideo) {
+            ytPlayer.nextVideo();
+        }
+    }
+}
+
+function updateTrackInfo() {
+    const data = ytPlayer.getVideoData();
+    if (data && data.title) {
+        // Handle common format "Artist - Song Title"
+        const parts = data.title.split(' - ');
+        if (parts.length >= 2) {
+            trackArtist.innerText = parts[0].trim();
+            trackTitle.innerText = parts.slice(1).join(' - ').trim();
+        } else {
+            trackTitle.innerText = data.title;
+            trackArtist.innerText = data.author || 'YouTube Playlist';
+        }
+    }
+}
+
+function startProgressInterval() {
+    if (progressInterval) clearInterval(progressInterval);
+    progressInterval = setInterval(updateProgress, 500);
+}
+
+function stopProgressInterval() {
+    if (progressInterval) clearInterval(progressInterval);
+}
+
+function formatTime(seconds) {
+    if (!seconds || isNaN(seconds)) return '0:00';
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+function updateProgress() {
+    if (!ytPlayer || !ytPlayer.getCurrentTime) return;
+    const current = ytPlayer.getCurrentTime();
+    const duration = ytPlayer.getDuration();
+    
+    if (duration > 0) {
+        const percentage = (current / duration) * 100;
+        progressBarFill.style.width = `${percentage}%`;
+        progressBarThumb.style.left = `${percentage}%`;
+        
+        timeCurrent.innerText = formatTime(current);
+        timeTotal.innerText = formatTime(duration);
+    }
+}

@@ -1932,3 +1932,150 @@ h1, h2, h3, h4, h5 {
         scroll-behavior: auto !important;
     }
 }
+
+/* ==========================================================================
+   FLOATING MUSIC PLAYER (BOTTOM RIGHT)
+   ========================================================================== */
+.brutalist-player {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 340px;
+    background-color: var(--surface);
+    border: 3px solid var(--black);
+    border-radius: 12px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 1.2rem;
+    box-shadow: none; /* User image shows no heavy shadow, just border, but keeping subtle neo-brutal edge */
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.player-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.player-close {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--dark-gray);
+    transition: color 0.2s ease;
+}
+
+.player-close:hover {
+    color: var(--black);
+}
+
+.track-details {
+    text-align: left;
+}
+
+.track-title {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    color: var(--black);
+    margin-bottom: 0.2rem;
+}
+
+.track-artist {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--dark-gray);
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.player-progress-container {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--black);
+}
+
+.progress-bar-wrapper {
+    flex-grow: 1;
+    height: 4px;
+    background-color: #d1d1d1;
+    position: relative;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: var(--black);
+    width: 30%;
+    border-radius: 2px;
+}
+
+.progress-bar-thumb {
+    width: 14px;
+    height: 14px;
+    background-color: var(--black);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    left: 30%;
+    transition: transform 0.1s;
+}
+
+.progress-bar-wrapper:hover .progress-bar-thumb {
+    transform: translate(-50%, -50%) scale(1.2);
+}
+
+.player-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0.5rem;
+}
+
+.ctrl-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--black);
+    transition: transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ctrl-btn:hover {
+    transform: scale(1.1);
+}
+
+.play-btn {
+    width: 48px;
+    height: 48px;
+    background-color: var(--black);
+    color: var(--surface);
+    border-radius: 50%;
+}
+
+.play-btn:active {
+    transform: scale(0.95);
+}
+
+/* Make it responsive */
+@media (max-width: 768px) {
+    .brutalist-player {
+        bottom: 1rem;
+        right: 1rem;
+        left: 1rem;
+        width: auto;
+        padding: 1rem;
+    }
+}
